@@ -1,0 +1,258 @@
+name: tillora
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
+services:
+  api:
+    image: ${TILLORA_IMAGE:?TILLORA_IMAGE is required}
+    restart: unless-stopped
+    stop_grace_period: 40s
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      TILLORA_DB_MAX_POOL_SIZE: ${TILLORA_DB_MAX_POOL_SIZE:-10}
+      TILLORA_DB_MIN_IDLE: ${TILLORA_DB_MIN_IDLE:-2}
+      TILLORA_DB_CONNECTION_TIMEOUT: ${TILLORA_DB_CONNECTION_TIMEOUT:-5s}
+      TILLORA_DB_VALIDATION_TIMEOUT: ${TILLORA_DB_VALIDATION_TIMEOUT:-3s}
+      TILLORA_DB_IDLE_TIMEOUT: ${TILLORA_DB_IDLE_TIMEOUT:-10m}
+      TILLORA_DB_MAX_LIFETIME: ${TILLORA_DB_MAX_LIFETIME:-30m}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
+      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      SPRING_REDIS_CONNECT_TIMEOUT: ${SPRING_REDIS_CONNECT_TIMEOUT:-2s}
+      SPRING_REDIS_TIMEOUT: ${SPRING_REDIS_TIMEOUT:-2s}
+      TILLORA_JWT_SECRET: ${TILLORA_JWT_SECRET:?TILLORA_JWT_SECRET is required}
+      TILLORA_PLATFORM_ADMIN_JWT_SECRET: ${TILLORA_PLATFORM_ADMIN_JWT_SECRET:?TILLORA_PLATFORM_ADMIN_JWT_SECRET is required}
+      TILLORA_COMPANY_PROVISIONING_TOKEN: ${TILLORA_COMPANY_PROVISIONING_TOKEN:?TILLORA_COMPANY_PROVISIONING_TOKEN is required}
+      TILLORA_ACCESS_TOKEN_TTL: ${TILLORA_ACCESS_TOKEN_TTL:-15m}
+      TILLORA_REFRESH_TOKEN_TTL: ${TILLORA_REFRESH_TOKEN_TTL:-7d}
+      TILLORA_COOKIE_SECURE: ${TILLORA_COOKIE_SECURE:?TILLORA_COOKIE_SECURE is required}
+      TILLORA_COOKIE_SAME_SITE: ${TILLORA_COOKIE_SAME_SITE:?TILLORA_COOKIE_SAME_SITE is required}
+      TILLORA_CORS_ALLOWED_ORIGINS: ${TILLORA_CORS_ALLOWED_ORIGINS:?TILLORA_CORS_ALLOWED_ORIGINS is required}
+      TILLORA_LOGIN_MAX_ATTEMPTS: ${TILLORA_LOGIN_MAX_ATTEMPTS:-10}
+      TILLORA_LOGIN_RATE_WINDOW: ${TILLORA_LOGIN_RATE_WINDOW:-1m}
+      MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
+      MANAGEMENT_SERVER_PORT: "8081"
+      TILLORA_MANAGEMENT_PASSWORD: ${TILLORA_MANAGEMENT_PASSWORD:?TILLORA_MANAGEMENT_PASSWORD is required}
+      SPRINGDOC_ENABLED: "false"
+      TILLORA_OBJECT_STORAGE_ENABLED: ${TILLORA_OBJECT_STORAGE_ENABLED:-false}
+      TILLORA_OBJECT_STORAGE_ENDPOINT: ${TILLORA_OBJECT_STORAGE_ENDPOINT:-}
+      TILLORA_OBJECT_STORAGE_ACCESS_KEY: ${TILLORA_OBJECT_STORAGE_ACCESS_KEY:-}
+      TILLORA_OBJECT_STORAGE_SECRET_KEY: ${TILLORA_OBJECT_STORAGE_SECRET_KEY:-}
+      TILLORA_OBJECT_STORAGE_BUCKET: ${TILLORA_OBJECT_STORAGE_BUCKET:-tillora-files}
+      TILLORA_OBJECT_STORAGE_MAX_SIZE: ${TILLORA_OBJECT_STORAGE_MAX_SIZE:-25MB}
+      TILLORA_OBJECT_STORAGE_CONNECT_TIMEOUT: ${TILLORA_OBJECT_STORAGE_CONNECT_TIMEOUT:-3s}
+      TILLORA_OBJECT_STORAGE_READ_TIMEOUT: ${TILLORA_OBJECT_STORAGE_READ_TIMEOUT:-15s}
+      TILLORA_OBJECT_STORAGE_WRITE_TIMEOUT: ${TILLORA_OBJECT_STORAGE_WRITE_TIMEOUT:-15s}
+      TILLORA_EMAIL_ENABLED: ${TILLORA_EMAIL_ENABLED:-false}
+      TILLORA_EMAIL_PROVIDER: ${TILLORA_EMAIL_PROVIDER:-BREVO}
+      TILLORA_BREVO_API_KEY: ${TILLORA_BREVO_API_KEY:-}
+      TILLORA_EMAIL_FROM_ADDRESS: ${TILLORA_EMAIL_FROM_ADDRESS:-}
+      TILLORA_EMAIL_FROM_NAME: ${TILLORA_EMAIL_FROM_NAME:-Tillora}
+      TILLORA_EMAIL_REPLY_TO: ${TILLORA_EMAIL_REPLY_TO:-}
+      TILLORA_EMAIL_CONNECT_TIMEOUT: ${TILLORA_EMAIL_CONNECT_TIMEOUT:-3s}
+      TILLORA_EMAIL_READ_TIMEOUT: ${TILLORA_EMAIL_READ_TIMEOUT:-10s}
+      TILLORA_EMAIL_MAX_RECIPIENTS: ${TILLORA_EMAIL_MAX_RECIPIENTS:-10}
+      TILLORA_EMAIL_MAX_ATTACHMENT_SIZE: ${TILLORA_EMAIL_MAX_ATTACHMENT_SIZE:-25MB}
+      TILLORA_DASHBOARD_CACHE_TTL: ${TILLORA_DASHBOARD_CACHE_TTL:-60s}
+      TILLORA_SLOW_QUERY_THRESHOLD: ${TILLORA_SLOW_QUERY_THRESHOLD:-500ms}
+      TILLORA_SHUTDOWN_TIMEOUT: ${TILLORA_SHUTDOWN_TIMEOUT:-30s}
+      TILLORA_HTTP_CONNECTION_TIMEOUT: ${TILLORA_HTTP_CONNECTION_TIMEOUT:-5s}
+      TILLORA_HTTP_KEEP_ALIVE_TIMEOUT: ${TILLORA_HTTP_KEEP_ALIVE_TIMEOUT:-20s}
+      TILLORA_HTTP_MAX_CONNECTIONS: ${TILLORA_HTTP_MAX_CONNECTIONS:-512}
+      TILLORA_HTTP_MAX_THREADS: ${TILLORA_HTTP_MAX_THREADS:-64}
+      TILLORA_HTTP_MIN_SPARE_THREADS: ${TILLORA_HTTP_MIN_SPARE_THREADS:-4}
+      TILLORA_RELEASE_VERSION: ${TILLORA_RELEASE_VERSION:?TILLORA_RELEASE_VERSION is required}
+      TILLORA_BOOTSTRAP_ENABLED: ${TILLORA_BOOTSTRAP_ENABLED:-false}
+      TILLORA_BOOTSTRAP_COMPANY_NAME: ${TILLORA_BOOTSTRAP_COMPANY_NAME:-}
+      TILLORA_BOOTSTRAP_COMPANY_LEGAL_NAME: ${TILLORA_BOOTSTRAP_COMPANY_LEGAL_NAME:-}
+      TILLORA_BOOTSTRAP_COMPANY_TAX_NUMBER: ${TILLORA_BOOTSTRAP_COMPANY_TAX_NUMBER:-}
+      TILLORA_BOOTSTRAP_CURRENCY: ${TILLORA_BOOTSTRAP_CURRENCY:-TRY}
+      TILLORA_BOOTSTRAP_TIMEZONE: ${TILLORA_BOOTSTRAP_TIMEZONE:-Europe/Istanbul}
+      TILLORA_BOOTSTRAP_ADMIN_USERNAME: ${TILLORA_BOOTSTRAP_ADMIN_USERNAME:-}
+      TILLORA_BOOTSTRAP_ADMIN_EMAIL: ${TILLORA_BOOTSTRAP_ADMIN_EMAIL:-}
+      TILLORA_BOOTSTRAP_ADMIN_PASSWORD: ${TILLORA_BOOTSTRAP_ADMIN_PASSWORD:-}
+      TILLORA_BOOTSTRAP_ADMIN_FIRST_NAME: ${TILLORA_BOOTSTRAP_ADMIN_FIRST_NAME:-}
+      TILLORA_BOOTSTRAP_ADMIN_LAST_NAME: ${TILLORA_BOOTSTRAP_ADMIN_LAST_NAME:-}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_ENABLED: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_ENABLED:-false}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_EMAIL: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:-}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_PASSWORD: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_PASSWORD:-}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp -Duser.timezone=Europe/Istanbul}
+      TZ: ${TZ:-Europe/Istanbul}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 1536m
+    mem_reservation: 768m
+    cpus: 1.50
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8081/actuator/health/readiness"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    logging: *default-logging
+    networks:
+      - edge
+      - backend
+
+  postgres:
+    image: postgres:17.10-alpine3.23
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TZ:-Europe/Istanbul}
+    command:
+      [
+        "postgres",
+        "-c",
+        "max_connections=40",
+        "-c",
+        "shared_buffers=256MB"
+      ]
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 1152m
+    mem_reservation: 512m
+    cpus: 0.75
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    logging: *default-logging
+    networks:
+      - backend
+      - db-access
+
+  redis:
+    image: redis:8.8.1-alpine3.23
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        printf '%s\n' 'bind 0.0.0.0' 'protected-mode yes' 'port 6379' 'appendonly yes' 'appendfsync everysec' 'save ""' 'maxmemory 160mb' 'maxmemory-policy noeviction' "requirepass $${REDIS_PASSWORD}" > /tmp/redis.conf
+        exec redis-server /tmp/redis.conf
+    user: redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      TZ: ${TZ:-Europe/Istanbul}
+    volumes:
+      - redis-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 224m
+    mem_reservation: 128m
+    cpus: 0.25
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning ping | grep -qx PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    logging: *default-logging
+    networks:
+      - backend
+
+  admin-web:
+    image: ${TILLORA_ADMIN_WEB_IMAGE:?TILLORA_ADMIN_WEB_IMAGE is required}
+    restart: unless-stopped
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+    networks:
+      - edge
+
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    image: tillora-caddy:2.11.2-cloudflare
+    restart: unless-stopped
+    user: "10001:10001"
+    environment:
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required}
+      TILLORA_API_DOMAIN: ${TILLORA_API_DOMAIN:?TILLORA_API_DOMAIN is required}
+      TILLORA_ADMIN_DOMAIN: ${TILLORA_ADMIN_DOMAIN:?TILLORA_ADMIN_DOMAIN is required}
+    depends_on:
+      api:
+        condition: service_healthy
+      admin-web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/tillora/caddy-data:/data
+      - /opt/tillora/caddy-config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    pids_limit: 64
+    mem_limit: 128m
+    mem_reservation: 32m
+    cpus: 0.25
+    logging: *default-logging
+    networks:
+      - edge
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  edge:
+  backend:
+    internal: true
+  db-access:

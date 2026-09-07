@@ -1,0 +1,53 @@
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    hikari:
+      maximum-pool-size: ${TILLORA_DB_MAX_POOL_SIZE:10}
+      minimum-idle: ${TILLORA_DB_MIN_IDLE:2}
+      connection-timeout: ${TILLORA_DB_CONNECTION_TIMEOUT:5000}
+      validation-timeout: ${TILLORA_DB_VALIDATION_TIMEOUT:3000}
+      idle-timeout: ${TILLORA_DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${TILLORA_DB_MAX_LIFETIME:1800000}
+  lifecycle:
+    timeout-per-shutdown-phase: ${TILLORA_SHUTDOWN_TIMEOUT:30s}
+
+server:
+  shutdown: graceful
+  forward-headers-strategy: framework
+  tomcat:
+    connection-timeout: ${TILLORA_HTTP_CONNECTION_TIMEOUT:5s}
+    keep-alive-timeout: ${TILLORA_HTTP_KEEP_ALIVE_TIMEOUT:20s}
+    max-connections: ${TILLORA_HTTP_MAX_CONNECTIONS:512}
+    threads:
+      max: ${TILLORA_HTTP_MAX_THREADS:64}
+      min-spare: ${TILLORA_HTTP_MIN_SPARE_THREADS:4}
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ACTUATOR_READ
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: ${spring.application.name}
+        environment: production
+        version: ${TILLORA_RELEASE_VERSION:0.0.1}
+    json:
+      context:
+        include: true
+      stacktrace:
+        max-length: 12000
+        max-throwable-depth: 20
+
+tillora:
+  security:
+    cookie:
+      secure: true
+      same-site: Lax

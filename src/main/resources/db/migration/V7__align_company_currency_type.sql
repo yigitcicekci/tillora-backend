@@ -1,0 +1,2 @@
+ALTER TABLE companies
+    ALTER COLUMN currency TYPE VARCHAR(3);

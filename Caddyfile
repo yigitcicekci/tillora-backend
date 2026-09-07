@@ -1,0 +1,71 @@
+{
+	admin off
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+{$TILLORA_API_DOMAIN} {
+	route {
+		encode zstd gzip
+		request_body {
+			max_size 30MB
+		}
+
+		header {
+			-Server
+			Cache-Control "no-store"
+			Strict-Transport-Security "max-age=31536000; includeSubDomains"
+			X-Content-Type-Options "nosniff"
+			X-Frame-Options "DENY"
+			Referrer-Policy "no-referrer"
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		}
+
+		@restricted path /actuator /actuator/* /swagger-ui.html /swagger-ui/* /v3/api-docs /v3/api-docs/*
+		handle @restricted {
+			respond 404
+		}
+
+		@admin path /internal/admin /internal/admin/*
+		handle @admin {
+			respond 403
+		}
+
+		handle {
+			reverse_proxy api:8080
+		}
+	}
+}
+
+{$TILLORA_ADMIN_DOMAIN} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	route {
+		encode zstd gzip
+		request_body {
+			max_size 30MB
+		}
+
+		header {
+			-Server
+			Cache-Control "no-store"
+			Strict-Transport-Security "max-age=31536000; includeSubDomains"
+			X-Content-Type-Options "nosniff"
+			X-Frame-Options "DENY"
+			Referrer-Policy "no-referrer"
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		}
+
+		@admin_api path /internal/admin /internal/admin/*
+		handle @admin_api {
+			reverse_proxy api:8080
+		}
+
+		handle {
+			reverse_proxy admin-web:8080
+		}
+	}
+}

@@ -1,0 +1,128 @@
+spring:
+  application:
+    name: tillora-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tillora}
+    username: ${SPRING_DATASOURCE_USERNAME:tillora}
+    password: ${SPRING_DATASOURCE_PASSWORD:tillora}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        query:
+          fail_on_pagination_over_collection_fetch: true
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      connect-timeout: ${SPRING_REDIS_CONNECT_TIMEOUT:2s}
+      timeout: ${SPRING_REDIS_TIMEOUT:2s}
+      repositories:
+        enabled: false
+
+server:
+  servlet:
+    context-path: /
+
+management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8081}
+    address: ${MANAGEMENT_SERVER_ADDRESS:127.0.0.1}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,redis,objectStorage
+  health:
+    defaults:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:false}
+    path: /swagger-ui.html
+
+tillora:
+  observability:
+    slow-query-threshold: ${TILLORA_SLOW_QUERY_THRESHOLD:500ms}
+  dashboard:
+    cache-ttl: ${TILLORA_DASHBOARD_CACHE_TTL:60s}
+  email:
+    enabled: ${TILLORA_EMAIL_ENABLED:false}
+    provider: ${TILLORA_EMAIL_PROVIDER:BREVO}
+    api-key: ${TILLORA_BREVO_API_KEY:}
+    from-address: ${TILLORA_EMAIL_FROM_ADDRESS:}
+    from-name: ${TILLORA_EMAIL_FROM_NAME:Tillora}
+    reply-to: ${TILLORA_EMAIL_REPLY_TO:}
+    connect-timeout: ${TILLORA_EMAIL_CONNECT_TIMEOUT:3s}
+    read-timeout: ${TILLORA_EMAIL_READ_TIMEOUT:10s}
+    max-recipients: ${TILLORA_EMAIL_MAX_RECIPIENTS:10}
+    max-attachment-size: ${TILLORA_EMAIL_MAX_ATTACHMENT_SIZE:25MB}
+  object-storage:
+    enabled: ${TILLORA_OBJECT_STORAGE_ENABLED:false}
+    endpoint: ${TILLORA_OBJECT_STORAGE_ENDPOINT:http://localhost:9000}
+    access-key: ${TILLORA_OBJECT_STORAGE_ACCESS_KEY:}
+    secret-key: ${TILLORA_OBJECT_STORAGE_SECRET_KEY:}
+    bucket: ${TILLORA_OBJECT_STORAGE_BUCKET:tillora-files}
+    max-object-size: ${TILLORA_OBJECT_STORAGE_MAX_SIZE:25MB}
+    connect-timeout: ${TILLORA_OBJECT_STORAGE_CONNECT_TIMEOUT:3s}
+    read-timeout: ${TILLORA_OBJECT_STORAGE_READ_TIMEOUT:15s}
+    write-timeout: ${TILLORA_OBJECT_STORAGE_WRITE_TIMEOUT:15s}
+  bootstrap:
+    enabled: ${TILLORA_BOOTSTRAP_ENABLED:false}
+    company-name: ${TILLORA_BOOTSTRAP_COMPANY_NAME:}
+    company-legal-name: ${TILLORA_BOOTSTRAP_COMPANY_LEGAL_NAME:}
+    company-tax-number: ${TILLORA_BOOTSTRAP_COMPANY_TAX_NUMBER:}
+    currency: ${TILLORA_BOOTSTRAP_CURRENCY:TRY}
+    timezone: ${TILLORA_BOOTSTRAP_TIMEZONE:Europe/Istanbul}
+    admin-username: ${TILLORA_BOOTSTRAP_ADMIN_USERNAME:}
+    admin-email: ${TILLORA_BOOTSTRAP_ADMIN_EMAIL:}
+    admin-password: ${TILLORA_BOOTSTRAP_ADMIN_PASSWORD:}
+    admin-first-name: ${TILLORA_BOOTSTRAP_ADMIN_FIRST_NAME:}
+    admin-last-name: ${TILLORA_BOOTSTRAP_ADMIN_LAST_NAME:}
+  security:
+    company-provisioning-token: ${TILLORA_COMPANY_PROVISIONING_TOKEN}
+    cors:
+      allowed-origins: ${TILLORA_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    management:
+      password: ${TILLORA_MANAGEMENT_PASSWORD}
+    jwt:
+      secret: ${TILLORA_JWT_SECRET}
+      platform-admin-secret: ${TILLORA_PLATFORM_ADMIN_JWT_SECRET}
+      access-token-ttl: ${TILLORA_ACCESS_TOKEN_TTL:15m}
+      refresh-token-ttl: ${TILLORA_REFRESH_TOKEN_TTL:7d}
+    cookie:
+      secure: ${TILLORA_COOKIE_SECURE:true}
+      same-site: ${TILLORA_COOKIE_SAME_SITE:Lax}
+    login-rate-limit:
+      max-attempts: ${TILLORA_LOGIN_MAX_ATTEMPTS:10}
+      window: ${TILLORA_LOGIN_RATE_WINDOW:1m}
+  platform-admin:
+    bootstrap:
+      enabled: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_ENABLED:false}
+      email: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:}
+      password: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_PASSWORD:}

@@ -1,0 +1,24 @@
+groups:
+  - name: tillora-backend
+    rules:
+      - alert: TilloraApiDown
+        expr: up{job="tillora-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Tillora API metrics endpoint is unavailable
+      - alert: TilloraHighServerErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{application="tillora-backend",status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{application="tillora-backend"}[5m])), 1) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tillora API server error rate is above five percent
+      - alert: TilloraSlowDatabaseQueries
+        expr: increase(tillora_database_slow_queries_total[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tillora detected repeated slow database operations

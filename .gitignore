@@ -1,0 +1,36 @@
+# Maven
+target/
+*.class
+
+# Logs
+*.log
+logs/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.development.example
+
+.deploy.env
+backups/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime and temporary files
+*.pid
+*.tmp
+*.swp
+*.swo
+
+# Postman local secrets
+postman/*Local*.postman_environment.json
+!postman/Tillora Platform Admin Local.postman_environment.json

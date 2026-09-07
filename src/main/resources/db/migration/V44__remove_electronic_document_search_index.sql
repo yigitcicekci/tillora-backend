@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS electronic_documents_search_trgm_idx;

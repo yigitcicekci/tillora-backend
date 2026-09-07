@@ -1,0 +1,149 @@
+services:
+  tillora-api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
+      SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
+      TILLORA_OBJECT_STORAGE_ENABLED: ${TILLORA_OBJECT_STORAGE_ENABLED:-false}
+      TILLORA_OBJECT_STORAGE_ENDPOINT: ${TILLORA_OBJECT_STORAGE_ENDPOINT:-http://minio:9000}
+      TILLORA_OBJECT_STORAGE_ACCESS_KEY: ${TILLORA_OBJECT_STORAGE_ACCESS_KEY:-}
+      TILLORA_OBJECT_STORAGE_SECRET_KEY: ${TILLORA_OBJECT_STORAGE_SECRET_KEY:-}
+      TILLORA_OBJECT_STORAGE_BUCKET: ${TILLORA_OBJECT_STORAGE_BUCKET:-tillora-files}
+      TILLORA_OBJECT_STORAGE_MAX_SIZE: ${TILLORA_OBJECT_STORAGE_MAX_SIZE:-25MB}
+      TILLORA_JWT_SECRET: ${TILLORA_JWT_SECRET}
+      TILLORA_PLATFORM_ADMIN_JWT_SECRET: ${TILLORA_PLATFORM_ADMIN_JWT_SECRET:?TILLORA_PLATFORM_ADMIN_JWT_SECRET is required}
+      TILLORA_COMPANY_PROVISIONING_TOKEN: ${TILLORA_COMPANY_PROVISIONING_TOKEN}
+      TILLORA_MANAGEMENT_PASSWORD: ${TILLORA_MANAGEMENT_PASSWORD}
+      TILLORA_ACCESS_TOKEN_TTL: ${TILLORA_ACCESS_TOKEN_TTL:-15m}
+      TILLORA_REFRESH_TOKEN_TTL: ${TILLORA_REFRESH_TOKEN_TTL:-7d}
+      TILLORA_CORS_ALLOWED_ORIGINS: ${TILLORA_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      TILLORA_EMAIL_ENABLED: ${TILLORA_EMAIL_ENABLED:-false}
+      TILLORA_EMAIL_PROVIDER: ${TILLORA_EMAIL_PROVIDER:-BREVO}
+      TILLORA_BREVO_API_KEY: ${TILLORA_BREVO_API_KEY:-}
+      TILLORA_EMAIL_FROM_ADDRESS: ${TILLORA_EMAIL_FROM_ADDRESS:-}
+      TILLORA_EMAIL_FROM_NAME: ${TILLORA_EMAIL_FROM_NAME:-Tillora}
+      TILLORA_EMAIL_REPLY_TO: ${TILLORA_EMAIL_REPLY_TO:-}
+      TILLORA_COOKIE_SECURE: ${TILLORA_COOKIE_SECURE:-false}
+      TILLORA_COOKIE_SAME_SITE: ${TILLORA_COOKIE_SAME_SITE:-Strict}
+      TILLORA_LOGIN_MAX_ATTEMPTS: ${TILLORA_LOGIN_MAX_ATTEMPTS:-10}
+      TILLORA_LOGIN_RATE_WINDOW: ${TILLORA_LOGIN_RATE_WINDOW:-1m}
+      TILLORA_DASHBOARD_CACHE_TTL: ${TILLORA_DASHBOARD_CACHE_TTL:-60s}
+      TILLORA_SLOW_QUERY_THRESHOLD: ${TILLORA_SLOW_QUERY_THRESHOLD:-500ms}
+      MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
+      MANAGEMENT_SERVER_PORT: 8081
+      TILLORA_BOOTSTRAP_ENABLED: ${TILLORA_BOOTSTRAP_ENABLED:-false}
+      TILLORA_BOOTSTRAP_COMPANY_NAME: ${TILLORA_BOOTSTRAP_COMPANY_NAME:-}
+      TILLORA_BOOTSTRAP_COMPANY_LEGAL_NAME: ${TILLORA_BOOTSTRAP_COMPANY_LEGAL_NAME:-}
+      TILLORA_BOOTSTRAP_COMPANY_TAX_NUMBER: ${TILLORA_BOOTSTRAP_COMPANY_TAX_NUMBER:-}
+      TILLORA_BOOTSTRAP_CURRENCY: ${TILLORA_BOOTSTRAP_CURRENCY:-TRY}
+      TILLORA_BOOTSTRAP_TIMEZONE: ${TILLORA_BOOTSTRAP_TIMEZONE:-Europe/Istanbul}
+      TILLORA_BOOTSTRAP_ADMIN_USERNAME: ${TILLORA_BOOTSTRAP_ADMIN_USERNAME:-}
+      TILLORA_BOOTSTRAP_ADMIN_EMAIL: ${TILLORA_BOOTSTRAP_ADMIN_EMAIL:-}
+      TILLORA_BOOTSTRAP_ADMIN_PASSWORD: ${TILLORA_BOOTSTRAP_ADMIN_PASSWORD:-}
+      TILLORA_BOOTSTRAP_ADMIN_FIRST_NAME: ${TILLORA_BOOTSTRAP_ADMIN_FIRST_NAME:-}
+      TILLORA_BOOTSTRAP_ADMIN_LAST_NAME: ${TILLORA_BOOTSTRAP_ADMIN_LAST_NAME:-}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_ENABLED: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_ENABLED:-false}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_EMAIL: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:-}
+      TILLORA_PLATFORM_ADMIN_BOOTSTRAP_PASSWORD: ${TILLORA_PLATFORM_ADMIN_BOOTSTRAP_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/actuator/health/liveness"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-8080}:8080"
+      - "127.0.0.1:${MANAGEMENT_PORT:-8081}:8081"
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    profiles: [storage]
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.3.0
+    restart: unless-stopped
+    secrets:
+      - management_password
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:12.0.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  postgres-data:
+  minio-data:
+  grafana-data:
+
+secrets:
+  management_password:
+    environment: TILLORA_MANAGEMENT_PASSWORD

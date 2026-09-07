@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:tc:postgresql:17:///tillora
+    username: tillora
+    password: tillora
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+tillora:
+  security:
+    company-provisioning-token: test-company-provisioning-token-32-characters
+    management:
+      password: test-only-management-password
+    jwt:
+      secret: test-only-jwt-secret-at-least-32-characters
+      platform-admin-secret: test-only-platform-admin-jwt-secret-at-least-32-characters
+    cookie:
+      secure: false

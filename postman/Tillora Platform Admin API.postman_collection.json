@@ -1,0 +1,398 @@
+{
+  "info": {
+    "_postman_id": "f6c4c8b2-9d2b-4f3a-b9d3-6f0a3eab6b2d",
+    "name": "Tillora Platform Admin API",
+    "description": "Private platform administration API for Tillora.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{platformAdminAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-Correlation-Id', value: pm.variables.replaceIn('{{$guid}}') });",
+          "pm.request.headers.upsert({ key: 'Accept-Language', value: pm.variables.get('language') || 'en' });",
+          "const csrfToken = pm.environment.get('platformAdminCsrfToken');",
+          "if (csrfToken) { pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: csrfToken }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "language",
+      "value": "tr",
+      "type": "string"
+    },
+    {
+      "key": "platformAdminEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "platformAdminPassword",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "platformAdminAccessToken",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "platformAdminCsrfToken",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "companyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyName",
+      "value": "Platform Managed Company",
+      "type": "string"
+    },
+    {
+      "key": "companyLegalName",
+      "value": "Platform Managed Company Ltd.",
+      "type": "string"
+    },
+    {
+      "key": "companyTaxNumber",
+      "value": "1234567890",
+      "type": "string"
+    },
+    {
+      "key": "companyTaxOffice",
+      "value": "Kadikoy",
+      "type": "string"
+    },
+    {
+      "key": "companyCurrency",
+      "value": "TRY",
+      "type": "string"
+    },
+    {
+      "key": "companyTimezone",
+      "value": "Europe/Istanbul",
+      "type": "string"
+    },
+    {
+      "key": "companyAdminUsername",
+      "value": "company-admin",
+      "type": "string"
+    },
+    {
+      "key": "companyAdminEmail",
+      "value": "company-admin@example.com",
+      "type": "string"
+    },
+    {
+      "key": "companyAdminPassword",
+      "value": "ChangeMe123!",
+      "type": "secret"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "CSRF Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { pm.environment.set('platformAdminCsrfToken', pm.response.json().token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/auth/csrf",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "auth",
+                "csrf"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { pm.environment.set('platformAdminAccessToken', pm.response.json().accessToken); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{platformAdminEmail}}\",\n  \"password\": \"{{platformAdminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Current Platform Admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/companies?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "companies"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "companies",
+                "{{companyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { pm.environment.set('companyId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{companyName}}\",\n  \"legalName\": \"{{companyLegalName}}\",\n  \"taxNumber\": \"{{companyTaxNumber}}\",\n  \"taxOffice\": \"{{companyTaxOffice}}\",\n  \"address\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"currency\": \"{{companyCurrency}}\",\n  \"timezone\": \"{{companyTimezone}}\",\n  \"adminUsername\": \"{{companyAdminUsername}}\",\n  \"adminEmail\": \"{{companyAdminEmail}}\",\n  \"adminTemporaryPassword\": \"{{companyAdminPassword}}\",\n  \"adminFirstName\": \"Company\",\n  \"adminLastName\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "companies"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "Platform Admin Audit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/audit?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/internal/admin/system/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "admin",
+                "system",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

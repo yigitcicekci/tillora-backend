@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:17:///tillora
+    username: tillora
+    password: tillora
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+tillora:
+  security:
+    management:
+      password: test-only-management-password
+    jwt:
+      secret: oyfvm+P92GOgGdFsbbU3opIkLaawW53OgZALT7vCnk4=
+      platform-admin-secret: test-only-platform-admin-jwt-secret-at-least-32-characters
+    company-provisioning-token: test-company-provisioning-token-32-characters
+    cookie:
+      secure: false

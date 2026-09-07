@@ -1,0 +1,12 @@
+FROM caddy:2.11.2-builder AS builder
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    xcaddy build \
+        --with github.com/caddy-dns/cloudflare@v0.2.4
+
+FROM caddy:2.11.2-alpine
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY scripts/caddy-entrypoint.sh /usr/local/bin/tillora-caddy
+RUN chmod 755 /usr/local/bin/tillora-caddy
+ENTRYPOINT ["/usr/local/bin/tillora-caddy"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

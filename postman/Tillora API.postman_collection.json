@@ -1,0 +1,2033 @@
+{
+  "info": {
+    "_postman_id": "2c7d48a2-4b9f-4b1b-9e34-4d720f28dbf4",
+    "name": "Tillora API",
+    "description": "Tillora backend API collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-Correlation-Id', value: pm.variables.replaceIn('{{$guid}}') });",
+          "pm.request.headers.upsert({ key: 'Accept-Language', value: pm.variables.get('language') || 'en' });",
+          "const csrfToken = pm.environment.get('csrfToken');",
+          "if (csrfToken) { pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: csrfToken }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "managementBaseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "language",
+      "value": "tr",
+      "type": "string"
+    },
+    {
+      "key": "changedPassword",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "cashAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cashAccountName",
+      "value": "Main Cash",
+      "type": "string"
+    },
+    {
+      "key": "cashAccountCurrency",
+      "value": "TRY",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountName",
+      "value": "Main Bank",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountBranch",
+      "value": "Kadikoy",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountIban",
+      "value": "TR330006100519786457841326",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountNumber",
+      "value": "12345678",
+      "type": "string"
+    },
+    {
+      "key": "bankAccountCurrency",
+      "value": "TRY",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productCode",
+      "value": "PRD-001",
+      "type": "string"
+    },
+    {
+      "key": "voucherId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "voucherIdempotencyKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "collectionIdempotencyKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "supplierTransferIdempotencyKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sourceSupplierCurrentAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetSupplierCurrentAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceSettlementIdempotencyKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "smsCode",
+      "value": "",
+      "type": "secret"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Readiness",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{managementBaseUrl}}/actuator/health/readiness",
+              "host": [
+                "{{managementBaseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health",
+                "readiness"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Liveness",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{managementBaseUrl}}/actuator/health/liveness",
+              "host": [
+                "{{managementBaseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health",
+                "liveness"
+              ]
+            }
+          }
+        },
+        {
+          "name": "OpenAPI",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v3/api-docs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v3",
+                "api-docs"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "CSRF Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { pm.environment.set('csrfToken', pm.response.json().token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/csrf",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "csrf"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('accessToken', json.accessToken);",
+                  "  pm.environment.set('companyId', json.user.companyId);",
+                  "  pm.environment.set('userId', json.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"username\": \"{{newUsername}}\",\n  \"password\": \"{{newUserTemporaryPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('accessToken', json.accessToken);",
+                  "  pm.test('Mandatory password flag is cleared', function () {",
+                  "    pm.expect(json.user.mustChangePassword).to.eql(false);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{newUserTemporaryPassword}}\",\n  \"newPassword\": \"{{changedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "change-password"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('accessToken', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.environment.unset('accessToken');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Create Company (Provisioning Token)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provisioningToken\": \"{{companyProvisioningToken}}\",\n  \"name\": \"New Company\",\n  \"legalName\": \"New Company AŞ\",\n  \"taxNumber\": \"1234567890\",\n  \"taxOffice\": \"Kadıköy\",\n  \"address\": \"İstanbul\",\n  \"phone\": \"+90 212 000 00 00\",\n  \"email\": \"info@new-company.example\",\n  \"currency\": \"TRY\",\n  \"timezone\": \"Europe/Istanbul\",\n  \"adminUsername\": \"new-company-admin\",\n  \"adminEmail\": \"admin@new-company.example\",\n  \"adminTemporaryPassword\": \"temporary-password\",\n  \"adminFirstName\": \"New\",\n  \"adminLastName\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/current",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies",
+                "current"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chart of Accounts",
+      "item": [
+        {
+          "name": "List Chart of Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  const first = json.content && json.content[0];",
+                  "  if (first) {",
+                  "    pm.environment.set('chartOfAccountId', first.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/chart-of-accounts?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chart-of-accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Chart of Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/chart-of-accounts/{{chartOfAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "chart-of-accounts",
+                "{{chartOfAccountId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('userId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{newUsername}}\",\n  \"email\": \"{{newUserEmail}}\",\n  \"temporaryPassword\": \"{{newUserTemporaryPassword}}\",\n  \"firstName\": \"{{newUserFirstName}}\",\n  \"lastName\": \"{{newUserLastName}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"roles\": [\"ADMIN\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable User",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}",
+                "disable"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Current Accounts",
+      "item": [
+        {
+          "name": "Create Current Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('currentAccountId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{currentAccountName}}\",\n  \"legalName\": \"{{currentAccountLegalName}}\",\n  \"taxNumber\": \"{{currentAccountTaxNumber}}\",\n  \"taxOffice\": \"{{currentAccountTaxOffice}}\",\n  \"identityNumber\": null,\n  \"phone\": \"{{currentAccountPhone}}\",\n  \"email\": \"{{currentAccountEmail}}\",\n  \"address\": \"{{currentAccountAddress}}\",\n  \"tradeType\": \"RETAIL\",\n  \"relationshipType\": \"BOTH\",\n  \"district\": \"{{currentAccountDistrict}}\",\n  \"city\": \"{{currentAccountCity}}\",\n  \"postalCode\": \"{{currentAccountPostalCode}}\",\n  \"countryCode\": \"{{currentAccountCountryCode}}\",\n  \"countryName\": \"{{currentAccountCountryName}}\",\n  \"openingDebit\": null,\n  \"openingCredit\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/current-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "current-accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Current Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/current-accounts?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "current-accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/current-accounts/{{currentAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "current-accounts",
+                "{{currentAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Current Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{currentAccountName}} Updated\",\n  \"legalName\": \"{{currentAccountLegalName}}\",\n  \"taxNumber\": \"{{currentAccountTaxNumber}}\",\n  \"taxOffice\": \"{{currentAccountTaxOffice}}\",\n  \"identityNumber\": null,\n  \"phone\": \"{{currentAccountPhone}}\",\n  \"email\": \"{{currentAccountEmail}}\",\n  \"address\": \"{{currentAccountAddress}}\",\n  \"district\": \"{{currentAccountDistrict}}\",\n  \"city\": \"{{currentAccountCity}}\",\n  \"postalCode\": \"{{currentAccountPostalCode}}\",\n  \"countryCode\": \"{{currentAccountCountryCode}}\",\n  \"countryName\": \"{{currentAccountCountryName}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/current-accounts/{{currentAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "current-accounts",
+                "{{currentAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Unused Current Account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/current-accounts/{{currentAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "current-accounts",
+                "{{currentAccountId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cash Accounts",
+      "item": [
+        {
+          "name": "Create Cash Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('cashAccountId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{cashAccountName}}\",\n  \"currency\": \"{{cashAccountCurrency}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cash-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cash-accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Cash Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cash-accounts?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cash-accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Cash Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cash-accounts/{{cashAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cash-accounts",
+                "{{cashAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable Cash Account",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cash-accounts/{{cashAccountId}}/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cash-accounts",
+                "{{cashAccountId}}",
+                "disable"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bank Accounts",
+      "item": [
+        {
+          "name": "Create Bank Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('bankAccountId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{bankAccountName}}\",\n  \"branch\": \"{{bankAccountBranch}}\",\n  \"iban\": \"{{bankAccountIban}}\",\n  \"accountNumber\": \"{{bankAccountNumber}}\",\n  \"currency\": \"{{bankAccountCurrency}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/bank-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Bank Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/bank-accounts?active=true&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bank Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/bank-accounts/{{bankAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts",
+                "{{bankAccountId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable Bank Account",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/bank-accounts/{{bankAccountId}}/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts",
+                "{{bankAccountId}}",
+                "disable"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('productId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productCode\": \"{{productCode}}\",\n  \"barcode\": \"869000000001\",\n  \"name\": \"Demo Product\",\n  \"unit\": \"PIECE\",\n  \"purchasePrice\": 100.0000,\n  \"salePrice\": 120.0000,\n  \"vatRate\": 20.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products?active=true&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"869000000001\",\n  \"name\": \"Updated Demo Product\",\n  \"unit\": \"BOX\",\n  \"purchasePrice\": 105.0000,\n  \"salePrice\": 130.0000,\n  \"vatRate\": 20.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable Product",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "disable"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Unused Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Create Sales Invoice",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('invoiceIdempotencyKey')) {",
+                  "  pm.environment.set('invoiceIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('invoiceId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{invoiceIdempotencyKey}}\",\n  \"currentAccountId\": \"{{currentAccountId}}\",\n  \"currency\": \"TRY\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"description\": \"Sales invoice line\",\n      \"quantity\": 2,\n      \"unitPrice\": 100.0000,\n      \"discountRate\": 10.00,\n      \"vatRate\": 20.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/sales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "sales"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Purchase Invoice",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('purchaseInvoiceIdempotencyKey')) {",
+                  "  pm.environment.set('purchaseInvoiceIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('invoiceId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{purchaseInvoiceIdempotencyKey}}\",\n  \"currentAccountId\": \"{{currentAccountId}}\",\n  \"currency\": \"TRY\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"description\": \"Purchase invoice line\",\n      \"quantity\": 2,\n      \"unitPrice\": 100.0000,\n      \"discountRate\": 10.00,\n      \"vatRate\": 20.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/purchases",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "purchases"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Invoice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentAccountId\": \"{{currentAccountId}}\",\n  \"currency\": \"TRY\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"description\": \"Updated invoice line\",\n      \"quantity\": 2,\n      \"unitPrice\": 125.0000,\n      \"discountRate\": 10.00,\n      \"vatRate\": 20.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/{{invoiceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoiceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices?invoiceType=SALES&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "invoiceType",
+                  "value": "SALES"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/{{invoiceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoiceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Invoice",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/{{invoiceId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoiceId}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Invoice with Settlement",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('invoiceSettlementIdempotencyKey')) {",
+                  "  pm.environment.set('invoiceSettlementIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{invoiceSettlementIdempotencyKey}}\",\n  \"settlementAccountType\": \"CASH\",\n  \"settlementAccountId\": \"{{cashAccountId}}\",\n  \"amount\": 216.0000,\n  \"movementNote\": \"Cash invoice settlement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/{{invoiceId}}/approve-with-settlement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoiceId}}",
+                "approve-with-settlement"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Settle Approved Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"settlementAccountType\": \"CASH\",\n  \"settlementAccountId\": \"{{cashAccountId}}\",\n  \"amount\": 100.0000,\n  \"movementNote\": \"Partial invoice settlement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invoices/{{invoiceId}}/settlements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{invoiceId}}",
+                "settlements"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search Current Accounts, Products and Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q={{searchQuery}}&types=CURRENT_ACCOUNT&types=PRODUCT&types=DOCUMENT&limit={{searchLimit}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{searchQuery}}"
+                },
+                {
+                  "key": "types",
+                  "value": "CURRENT_ACCOUNT"
+                },
+                {
+                  "key": "types",
+                  "value": "PRODUCT"
+                },
+                {
+                  "key": "types",
+                  "value": "DOCUMENT"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{searchLimit}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/audit?dateFrom=2026-07-01&dateTo=2026-07-31&page=0&size=20&sort=createdAt,desc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/summary?period=2026-07",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "2026-07"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reporting",
+      "item": [
+        {
+          "name": "Current Account Statement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/current-account-statement?currentAccountId={{currentAccountId}}&dateFrom=2026-07-01&dateTo=2026-07-31&page=0&size=20&sort=voucherDate,asc"
+          }
+        },
+        {
+          "name": "Send Current Account Statement Email",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('statementEmailIdempotencyKey')) {",
+                  "  pm.environment.set('statementEmailIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('statementEmailDeliveryId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{statementEmailIdempotencyKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"{{currentAccountEmail}}\"],\n  \"cc\": [],\n  \"subject\": \"Cari hesap ekstresi\",\n  \"message\": \"Cari hesap ekstresi ekte yer almaktadır.\",\n  \"pdfBase64\": \"JVBERi0xLjcKJSVFT0Y=\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/current-accounts/{{currentAccountId}}/statement/email?dateFrom=2026-07-01&dateTo=2026-07-31"
+          }
+        },
+        {
+          "name": "Customer Receivables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/receivables?dateTo=2026-07-31&page=0&size=20&sort=balance,desc"
+          }
+        },
+        {
+          "name": "Supplier Payables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/payables?dateTo=2026-07-31&page=0&size=20&sort=balance,desc"
+          }
+        },
+        {
+          "name": "Voucher Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/vouchers?dateFrom=2026-07-01&dateTo=2026-07-31&status=APPROVED&page=0&size=20&sort=voucherDate,desc"
+          }
+        },
+        {
+          "name": "Cash Movements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/cash-movements?dateFrom=2026-07-01&dateTo=2026-07-31&page=0&size=20"
+          }
+        },
+        {
+          "name": "Bank Movements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/bank-movements?dateFrom=2026-07-01&dateTo=2026-07-31&page=0&size=20"
+          }
+        },
+        {
+          "name": "Sales Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/sales?dateFrom=2026-07-01&dateTo=2026-07-31&status=APPROVED&page=0&size=20"
+          }
+        },
+        {
+          "name": "Purchase Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/purchases?dateFrom=2026-07-01&dateTo=2026-07-31&status=APPROVED&page=0&size=20"
+          }
+        },
+        {
+          "name": "Audit Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/reports/audit?dateFrom=2026-07-01&dateTo=2026-07-31&page=0&size=20&sort=createdAt,desc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "Create Cash Collection Voucher",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('collectionIdempotencyKey')) {",
+                  "  pm.environment.set('collectionIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('voucherId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{collectionIdempotencyKey}}\",\n  \"currentAccountId\": \"{{currentAccountId}}\",\n  \"settlementAccountType\": \"CASH\",\n  \"settlementAccountId\": \"{{cashAccountId}}\",\n  \"amount\": 1000.0000,\n  \"movementNote\": \"Customer cash collection\",\n  \"documentNumber\": \"RCPT-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/collections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "collections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Bank Payment Voucher",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('paymentIdempotencyKey')) {",
+                  "  pm.environment.set('paymentIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('voucherId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{paymentIdempotencyKey}}\",\n  \"currentAccountId\": \"{{currentAccountId}}\",\n  \"settlementAccountType\": \"BANK\",\n  \"settlementAccountId\": \"{{bankAccountId}}\",\n  \"amount\": 800.0000,\n  \"movementNote\": \"Supplier bank payment\",\n  \"documentNumber\": \"PAY-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "payments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Supplier to Supplier Transfer Voucher",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('supplierTransferIdempotencyKey')) {",
+                  "  pm.environment.set('supplierTransferIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('voucherId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Transfer source types: CASH, BANK, CUSTOMER, SUPPLIER. Transfer target types: CASH, BANK, SUPPLIER.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{supplierTransferIdempotencyKey}}\",\n  \"sourceAccountType\": \"SUPPLIER\",\n  \"sourceAccountId\": \"{{sourceSupplierCurrentAccountId}}\",\n  \"targetAccountType\": \"SUPPLIER\",\n  \"targetAccountId\": \"{{targetSupplierCurrentAccountId}}\",\n  \"amount\": 500.0000,\n  \"movementNote\": \"Supplier to supplier transfer\",\n  \"documentNumber\": \"VRM-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "transfers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Offset Voucher",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('voucherIdempotencyKey')) {",
+                  "  pm.environment.set('voucherIdempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('voucherId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{voucherIdempotencyKey}}\",\n  \"voucherType\": \"OFFSET\",\n  \"movementNote\": \"Opening balance offset\",\n  \"documentNumber\": \"DOC-001\",\n  \"lines\": [\n    {\n      \"chartOfAccountId\": \"{{chartOfAccountId}}\",\n      \"movementNote\": \"Debit entry\",\n      \"debit\": 1000.0000,\n      \"credit\": 0\n    },\n    {\n      \"chartOfAccountId\": \"{{chartOfAccountId}}\",\n      \"movementNote\": \"Credit entry\",\n      \"debit\": 0,\n      \"credit\": 1000.0000\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Replace Draft Voucher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementNote\": \"Updated opening balance offset\",\n  \"documentNumber\": \"DOC-001\",\n  \"lines\": [\n    {\n      \"chartOfAccountId\": \"{{chartOfAccountId}}\",\n      \"movementNote\": \"Updated debit entry\",\n      \"debit\": 1250.0000,\n      \"credit\": 0\n    },\n    {\n      \"chartOfAccountId\": \"{{chartOfAccountId}}\",\n      \"movementNote\": \"Updated credit entry\",\n      \"debit\": 0,\n      \"credit\": 1250.0000\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/{{voucherId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "{{voucherId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Vouchers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Voucher",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/{{voucherId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "{{voucherId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Voucher",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/{{voucherId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "{{voucherId}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Entered with an incorrect document reference\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vouchers/{{voucherId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vouchers",
+                "{{voucherId}}",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      TILLORA_COMPANY_PROVISIONING_TOKEN: ci-test-company-provisioning-token-32-characters
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: bash scripts/test-local-setup.sh
+      - run: mvn -B -ntp verify
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.caddy
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: tillora-caddy:ci
+          cache-from: type=gha,scope=caddy
+          cache-to: type=gha,mode=max,scope=caddy
+      - name: Validate Caddy configuration
+        env:
+          CLOUDFLARE_API_TOKEN: cfut_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          TILLORA_API_DOMAIN: api.example.com
+          TILLORA_ADMIN_DOMAIN: admin.example.com
+        run: |
+          docker run --rm \
+            --env CLOUDFLARE_API_TOKEN \
+            --env TILLORA_API_DOMAIN --env TILLORA_ADMIN_DOMAIN \
+            --volume "$GITHUB_WORKSPACE/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            tillora-caddy:ci \
+            validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm \
+            --env CLOUDFLARE_API_TOKEN \
+            --env TILLORA_API_DOMAIN --env TILLORA_ADMIN_DOMAIN \
+            --volume "$GITHUB_WORKSPACE/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            tillora-caddy:ci \
+            adapt --config /etc/caddy/Caddyfile --adapter caddyfile --pretty \
+            | jq -e '
+                def has_path($path): (.match? // [] | any(.[]; (.path? // []) | index($path) != null));
+                def has_paths: has_path("/internal/admin") and has_path("/internal/admin/*");
+                def has_upstream($dial): (.upstreams? // [] | any(.[]; .dial == $dial));
+                def has_cloudflare_dns:
+                  (.apps.tls.automation.policies // [])
+                  | any(.[]; ((.subjects? // []) | index("admin.example.com") != null) and
+                    any(.issuers[]?.challenges.dns.provider?;
+                      .name == "cloudflare" and .api_token == "{env.CLOUDFLARE_API_TOKEN}"));
+                (all(.. | objects; .remote_ip? == null)) and
+                has_cloudflare_dns and
+                (any(.apps.http.servers.srv0.routes[]; .match[0].host[0] == "admin.example.com" and
+                  any(.. | objects; has_paths and any(.. | objects; has_upstream("api:8080"))) and
+                  any(.. | objects; has_upstream("admin-web:8080")))) and
+                (any(.apps.http.servers.srv0.routes[]; .match[0].host[0] == "api.example.com" and
+                  any(.. | objects; has_paths and any(.. | objects; .status_code? == 403)) and
+                  any(.. | objects; has_upstream("api:8080"))))
+              '
